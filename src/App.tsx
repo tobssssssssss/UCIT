@@ -7,7 +7,7 @@ import AdminPage from '@/pages/AdminPage';
 import { Loader2 } from 'lucide-react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
+  const { nick, loading } = useAuth();
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -15,12 +15,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (!session) return <Navigate to="/login" replace />;
+  if (!nick) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading } = useAuth();
+  const { nick, loading } = useAuth();
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -28,7 +28,7 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  if (session) return <Navigate to="/" replace />;
+  if (nick) return <Navigate to="/" replace />;
   return <>{children}</>;
 }
 

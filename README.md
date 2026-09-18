@@ -1,101 +1,115 @@
-# Vzdelávacia Portál — Návod na používanie
+# Vzdelávací Portál
 
-Tento portál je miesto, kde sa študenti prihlasujú svojím nickom a majú prístup k rôznym predmetom. Každý predmet ich presmeruje na samostatnú aplikáciu.
+Portál kde sa prihlásiš iba nickom — žiadny email, žiadne heslo. Vidíš predmety, každý odkazuje na vlastnú stránku. Admin môže pridávať predmety, čítať správy a nastaviť Discord webhook.
 
 ---
 
-## Ako začať (prvé spustenie)
+## Ako funguje prihlásenie
 
-1. Otvor portál — uvidíš prihlasovaciu obrazovku.
-2. Klikni na **Registrácia** a vytvor si účet:
-   - **Nick** — tvoja prezývka, ktorou ťa budú ostatní vidieť.
-   - **Meno a priezvisko** — tvoje skutočné meno (voliteľné, ale odporúčané).
-   - **Email a heslo** — na prihlásenie.
-3. Po registrácii ťa to prihlási a uvidíš zoznam predmetov.
+1. Otvor portál — vidíš jednoduché pole pre nick.
+2. **Zadaj svoj nick** a klikni **Prihlásiť sa**.
+3. Ak nick ešte neexistuje, klikni **Registrovať nový nick** — vytvorí sa a prihlási.
+4. Nick si zapamätá prehliadač, takže nabudúce ťa prihlási automaticky.
+5. **Odhlásiť** sa môžeš kedykoľvek — tlačidlom v hornej lište.
 
 ---
 
 ## Ako sa stať adminom
 
-Keď sa prihlásiš ako prvý používateľ a ešte neexistuje žiadny admin:
+1. Prihlás sa svojím nickom.
+2. Otvor `/admin` v prehliadači.
+3. Ak ešte nikto nie je admin, uvidíš tlačidlo **Prevziať admina**. Klikni.
+4. Odteraz máš admin práva a vidíš Admin Panel.
 
-1. Otvor URL `/admin` (napr. `https://tvojportal.sk/admin`).
-2. Uvidíš obrazovku **"Žiadny admin neexistuje"** s tlačidlom **Prevziať admina**.
-3. Klikni na tlačidlo — staneš sa adminom.
-
-Ak už admin existuje, môže ťa povýšiť cez Admin Panel → záložku **Admins**.
+Ak už admin existuje, môže ťa povýšiť v Admin Paneli → **Admins**.
 
 ---
 
-## Ako pridať nový predmet (ako admin)
+## Ako pridať novú stránku (predmet)
 
-1. Prihlás sa a choď na **Admin Panel** (tlačidlo v hornej lište alebo URL `/admin`).
+1. Prihlás sa ako admin a choď na **Admin Panel** (tlačidlo v hornej lište alebo `/admin`).
 2. Otvor záložku **Predmety**.
 3. Klikni **Pridať predmet**.
-4. Vyplň formulár:
-   - **Názov** — názov predmetu (napr. "Matematika").
-   - **Slug** — URL identifikátor (napr. "matematika"). Ak necháš prázdne, vygeneruje sa automaticky z názvu.
-   - **Popis** — krátky popis, ktorý sa zobrazí na karte.
-   - **URL** — odkaz na aplikáciu pre daný predmet (napr. `https://github.com/mojprojekt`).
-   - **Ikona** — vyber ikonu zo zoznamu (Leaf, BookOpen, ShoppingBag, atď.).
-   - **Poradie** — číslo, ktoré určuje poradie kariet (nižšie = skôr).
+4. Vyplň:
+   - **Názov** — ako sa predmet volá (napr. "Matematika").
+   - **Slug** — identifikátor do URL (napr. "matematika"). Ak necháš prázdne, vygeneruje sa automaticky.
+   - **Popis** — krátky popis zobrazený na karte.
+   - **URL** — odkaz na stránku predmetu (napr. `https://github.com/mojprojekt`).
+   - **Ikona** — vyber z ponuky (Leaf, BookOpen, ShoppingBag, atď.).
+   - **Poradie** — číslo pre zoradenie kariet (nižšie = skôr).
 5. Klikni **Vytvoriť**.
 
-### Ako upraviť alebo zmazať predmet
+### Upraviť / Skryť / Zmazať predmet
 
-- **Upraviť**: Klikni na ikonu pera vedľa predmetu.
-- **Skryť/Zobraziť**: Klikni na ikonu štítu — predmet sa skryje z portálu, ale zostane v databáze.
-- **Zmazať**: Klikni na ikonu koša — predmet sa trvalo odstráni.
+- **Upraviť**: ikona pera vedľa predmetu.
+- **Skryť/Zobraziť**: ikona štítu — predmet zmizne z portálu ale ostane v databáze.
+- **Zmazať**: ikona koša — trvalo odstráni.
 
 ---
 
-## Ako nastaviť Discord notifikácie
+## Discord webhook — aké premenné treba nastaviť
 
-1. V Discorde vytvor webhook pre kanál, kam chceš dostávať notifikácie:
-   - Nastavenia kanálu → **Integrácie** → **Webhooky** → **Nový webhook**.
-   - Skopíruj URL web hooku (vyzerá ako `https://discord.com/api/webhooks/...`).
-2. V Admin Paneli otvor záložku **Nastavenia**.
-3. Vlož URL do poľa **Discord Webhook URL**.
-4. Klikni **Uložiť**.
+### Kde sa nastavuje
 
-Od teraz ti na Discord budú chodiť notifikácie:
-- **Keď sa niekto prihlási** — nick, meno a email.
-- **Keď niekto pošle správu cez kontaktný formulár** — nick, meno, správa, predmet a navrhovaná cena.
+V Admin Paneli → **Nastavenia** → pole **Discord Webhook URL**.
+
+### Čo zadať
+
+Jednu jedinú hodnotu — **URL web hooku** z Discorda:
+
+```
+https://discord.com/api/webhooks/XXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+### Ako získať webhook URL
+
+1. Otvor Discord → kanál, kam chceš dostávať notifikácie.
+2. Nastavenia kanálu → **Integrácie** → **Webhooky** → **Nový webhook**.
+3. Skopíruj **URL web hooku**.
+4. Vlož ho do Admin Paneli → Nastavenia → Uložiť.
+
+### Čo potom chodí na Discord
+
+- **Prihlásenie**: nick a meno používateľa.
+- **Správa z kontaktu**: nick, meno, text správy, predmet (ak vybraný), navrhovaná cena (ak zadaná).
+
+### Žiadne ďalšie premenné
+
+Nepotrebuješ nastavovať žiadne environment variables ani secrets. Všetko funguje automaticky — Supabase URL a kľúče sú už nakonfigurované v projekte.
 
 ---
 
 ## Kontaktný formulár
 
-Na stránke `/contact` môže ktokoľvek (aj bez prihlásenia) poslať správu adminovi.
+Na `/contact` môže ktokoľvek poslať správu — nepotrebuje byť prihlásený.
 
 Vyplní:
 - **Nick** — svoju prezývku.
-- **Meno a priezvisko** — skutočné meno.
 - **Predmet** (voliteľné) — ku ktorému predmetu sa správa vzťahuje.
-- **Správa** — text správy.
+- **Správa** — text.
 - **Navrhovaná cena** (voliteľné) — ak chce navrhnúť cenu.
 
-Správy si admin môže prečítať v Admin Paneli → záložka **Správy**. Neprečítané správy sú zvýraznené.
+Správy si admin prečíta v Admin Paneli → **Správy**. Neprečítané sú zvýraznené.
 
 ---
 
 ## Správa adminov
 
-V Admin Paneli → záložka **Admins** vidíš zoznam všetkých registrovaných používateľov.
+V Admin Paneli → **Admins** je zoznam všetkých nickov.
 
-- Klikni na ikonu **štítu** vedľa používateľa pre pridanie alebo odobranie admin práv.
-- Môžeš odobrať aj svoje vlastné admin práva (s potvrdením).
+- Klikni na ikonu **štítu** vedľa nicku pre pridanie/odobranie admin práv.
+- Môžeš odobrať aj svoje vlastné (s potvrdením).
 
 ---
 
-## Štruktúra portálu
+## Prehľad stránok
 
 | Stránka | URL | Kto ju vidí |
 |---|---|---|
-| Prihlásenie/Registrácia | `/login` | Neprihlásení |
-| Portál (zoznam predmetov) | `/` | Prihlásení |
+| Prihlásenie | `/login` | Neprihlásení |
+| Portál (predmety) | `/` | Prihlásení |
 | Kontakt | `/contact` | Všetci |
-| Admin Panel | `/admin` | Prihlásení (admin po prvom nárokovaní) |
+| Admin Panel | `/admin` | Prihlásení (admin po prevzatí) |
 
 ---
 

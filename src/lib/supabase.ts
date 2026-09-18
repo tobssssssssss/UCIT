@@ -3,13 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-});
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export type Subject = {
   id: string;
@@ -23,8 +17,7 @@ export type Subject = {
   created_at: string;
 };
 
-export type Profile = {
-  id: string;
+export type Nick = {
   nick: string;
   full_name: string | null;
   is_admin: boolean;

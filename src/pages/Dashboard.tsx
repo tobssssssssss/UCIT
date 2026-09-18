@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase, type Subject } from '@/lib/supabase';
 import { SubjectIcon } from '@/components/SubjectIcon';
-import { LogOut, Shield, ExternalLink, MessageSquare, Mail } from 'lucide-react';
+import { LogOut, Shield, ExternalLink, MessageSquare, Mail, GraduationCap } from 'lucide-react';
 
 export default function Dashboard() {
-  const { profile, signOut } = useAuth();
+  const { profile, nick, signOut } = useAuth();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -23,16 +23,15 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Header */}
       <header className="sticky top-0 z-10 backdrop-blur-xl bg-slate-900/70 border-b border-slate-700/50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <GraduationCapSmall />
+              <GraduationCap className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Vzdelávacia Portál</h1>
-              <p className="text-xs text-slate-400">Vitaj, {profile?.nick ?? 'používateľ'}</p>
+              <h1 className="text-lg font-bold text-white">Vzdelávací Portál</h1>
+              <p className="text-xs text-slate-400">Vitaj, {nick ?? 'používateľ'}</p>
             </div>
           </div>
 
@@ -64,7 +63,6 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
         <div className="mb-10">
           <h2 className="text-3xl font-bold text-white mb-2">Predmety</h2>
@@ -97,7 +95,6 @@ export default function Dashboard() {
                   </div>
                   <ExternalLink className="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors" />
                 </div>
-
                 <h3 className="text-xl font-bold text-white mb-2 group-hover:text-emerald-400 transition-colors">
                   {subject.name}
                 </h3>
@@ -109,7 +106,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Contact CTA */}
         <div className="mt-12 bg-gradient-to-r from-slate-800/50 to-slate-800/30 rounded-2xl border border-slate-700/50 p-8 text-center">
           <MessageSquare className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-white mb-2">Máš otázku alebo návrh?</h3>
@@ -124,14 +120,5 @@ export default function Dashboard() {
         </div>
       </main>
     </div>
-  );
-}
-
-function GraduationCapSmall() {
-  return (
-    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l9-5-9-5-9 5 9 5z" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-    </svg>
   );
 }

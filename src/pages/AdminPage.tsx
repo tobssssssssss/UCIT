@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { supabase, type Subject, type Message, type Profile } from '@/lib/supabase';
+import { supabase, type Subject, type Message, type Nick } from '@/lib/supabase';
 import { SubjectIcon } from '@/components/SubjectIcon';
 import {
   ArrowLeft, Shield, Plus, Trash2, Edit2, X, Mail, Check, Users,
@@ -11,25 +11,26 @@ import {
 type Tab = 'subjects' | 'messages' | 'admins' | 'settings';
 
 export default function AdminPage() {
-  const { profile, loading: authLoading, refreshProfile } = useAuth();
+  const { nick, profile, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('subjects');
   const [noAdminClaimed, setNoAdminClaimed] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const [checkedAdmin, setCheckedAdmin] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !profile?.is_admin) {
-      // Check if any admin exists — if not, offer to claim
-      supabase.rpc('claim_first_admin').then(({ data }) => {
+    if (!authLoading && nick && !profile?.is_admin && !checkedAdmin) {
+      supabase.rpc('claim_first_admin_nick', { p_nick: nick }).then(({ data }) => {
         if (data === true) {
           refreshProfile();
           setNoAdminClaimed(false);
         } else {
           setNoAdminClaimed(true);
         }
+        setCheckedAdmin(true);
       });
     }
-  }, [authLoading, profile, refreshProfile]);
+  }, [authLoading, nick, profile, refreshProfile, checkedAdmin]);
 
   if (authLoading) {
     return (
@@ -39,12 +40,12 @@ export default function AdminPage() {
     );
   }
 
-  if (!profile) {
-    navigate('/');
+  if (!nick) {
+    navigate('/login');
     return null;
   }
 
-  if (!profile.is_admin && noAdminClaimed) {
+  if (!profile?.is_admin && noAdminClaimed) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -53,12 +54,12 @@ export default function AdminPage() {
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">Žiadny admin neexistuje</h2>
           <p className="text-slate-400 mb-8">
-            Tento projekt ešte nemá admina. Ako prvý prihlásený používateľ môžeš prevziať rolu admina.
+            Tento projekt ešte nemá admina. Môžeš prevziať rolu admina.
           </p>
           <button
             onClick={async () => {
               setClaiming(true);
-              const { data } = await supabase.rpc('claim_first_admin');
+              const { data } = await supabase.rpc('claim_first_admin_nick', { p_nick: nick });
               if (data === true) {
                 await refreshProfile();
                 setNoAdminClaimed(false);
@@ -81,7 +82,7 @@ export default function AdminPage() {
     );
   }
 
-  if (!profile.is_admin) {
+  if (!profile?.is_admin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
@@ -117,7 +118,6 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        {/* Tabs */}
         <div className="flex gap-1 p-1 bg-slate-800/50 rounded-xl mb-8 overflow-x-auto">
           {([
             ['subjects', 'Predmety', Plus],
@@ -140,19 +140,16 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {tab === 'subjects' && <SubjectsTab />}
-        {tab === 'messages' && <MessagesTab />}
-        {tab === 'admins' && <AdminsTab />}
-        {tab === 'settings' && <SettingsTab />}
+        {tab === 'subjects' && <SubjectsTab adminNick={nick!} />}
+        {tab === 'messages' && <MessagesTab adminNick={nick!} />}
+        {tab === 'admins' && <AdminsTab adminNick={nick!} />}
+        {tab === 'settings' && <SettingsTab adminNick={nick!} />}
       </main>
     </div>
   );
 }
 
-// ============================================================
-// SUBJECTS TAB
-// ============================================================
-function SubjectsTab() {
+function SubjectsTab({ adminNick }: { adminNick: string }) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Subject | null>(null);
@@ -164,18 +161,16 @@ function SubjectsTab() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchSubjects();
-  }, []);
+  useEffect(() => { fetchSubjects(); }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Naozaj chceš zmazať tento predmet?')) return;
-    await supabase.from('subjects').delete().eq('id', id);
+    await supabase.rpc('admin_delete_subject_nick', { p_nick: adminNick, p_id: id });
     fetchSubjects();
   };
 
   const toggleActive = async (s: Subject) => {
-    await supabase.from('subjects').update({ is_active: !s.is_active }).eq('id', s.id);
+    await supabase.rpc('admin_toggle_subject_active_nick', { p_nick: adminNick, p_id: s.id });
     fetchSubjects();
   };
 
@@ -195,6 +190,7 @@ function SubjectsTab() {
 
       {showForm && (
         <SubjectForm
+          adminNick={adminNick}
           subject={editing}
           onClose={() => setShowForm(false)}
           onSaved={() => { setShowForm(false); fetchSubjects(); }}
@@ -203,10 +199,7 @@ function SubjectsTab() {
 
       <div className="space-y-3">
         {subjects.map((s) => (
-          <div
-            key={s.id}
-            className="flex items-center gap-4 bg-slate-800/50 rounded-xl border border-slate-700/50 p-4"
-          >
+          <div key={s.id} className="flex items-center gap-4 bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
             <div className="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
               <SubjectIcon name={s.icon} className="w-6 h-6 text-emerald-400" />
             </div>
@@ -214,33 +207,17 @@ function SubjectsTab() {
               <h3 className="font-semibold text-white">{s.name}</h3>
               <p className="text-sm text-slate-400 truncate">{s.url}</p>
             </div>
-            <span
-              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                s.is_active
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-slate-600/20 text-slate-500 border border-slate-600/30'
-              }`}
-            >
+            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${s.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-600/20 text-slate-500 border border-slate-600/30'}`}>
               {s.is_active ? 'Aktívny' : 'Skrytý'}
             </span>
             <div className="flex gap-2">
-              <button
-                onClick={() => toggleActive(s)}
-                className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
-                title={s.is_active ? 'Skryť' : 'Zobraziť'}
-              >
+              <button onClick={() => toggleActive(s)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-white hover:bg-slate-700 transition-all" title={s.is_active ? 'Skryť' : 'Zobraziť'}>
                 {s.is_active ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
               </button>
-              <button
-                onClick={() => { setEditing(s); setShowForm(true); }}
-                className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-amber-400 hover:bg-slate-700 transition-all"
-              >
+              <button onClick={() => { setEditing(s); setShowForm(true); }} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-amber-400 hover:bg-slate-700 transition-all">
                 <Edit2 className="w-4 h-4" />
               </button>
-              <button
-                onClick={() => handleDelete(s.id)}
-                className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-all"
-              >
+              <button onClick={() => handleDelete(s.id)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-all">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
@@ -251,7 +228,8 @@ function SubjectsTab() {
   );
 }
 
-function SubjectForm({ subject, onClose, onSaved }: {
+function SubjectForm({ adminNick, subject, onClose, onSaved }: {
+  adminNick: string;
   subject: Subject | null;
   onClose: () => void;
   onSaved: () => void;
@@ -262,6 +240,7 @@ function SubjectForm({ subject, onClose, onSaved }: {
   const [url, setUrl] = useState(subject?.url ?? '');
   const [icon, setIcon] = useState(subject?.icon ?? 'BookOpen');
   const [sortOrder, setSortOrder] = useState(subject?.sort_order ?? 0);
+  const [isActive, setIsActive] = useState(subject?.is_active ?? true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -270,21 +249,22 @@ function SubjectForm({ subject, onClose, onSaved }: {
     setSaving(true);
     setError(null);
 
-    const data = {
-      name,
-      slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-      description: description || null,
-      url,
-      icon,
-      sort_order: sortOrder,
-    };
-
-    const { error: err } = subject
-      ? await supabase.from('subjects').update(data).eq('id', subject.id)
-      : await supabase.from('subjects').insert(data);
-
-    if (err) setError(err.message);
-    else onSaved();
+    if (subject) {
+      const { error: err } = await supabase.rpc('admin_update_subject_nick', {
+        p_nick: adminNick, p_id: subject.id,
+        p_name: name, p_slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        p_desc: description, p_url: url, p_icon: icon, p_sort: sortOrder, p_active: isActive,
+      });
+      if (err) setError(err.message);
+      else onSaved();
+    } else {
+      const { error: err } = await supabase.rpc('admin_add_subject_nick', {
+        p_nick: adminNick, p_name: name, p_slug: slug, p_desc: description,
+        p_url: url, p_icon: icon, p_sort: sortOrder,
+      });
+      if (err) setError(err.message);
+      else onSaved();
+    }
     setSaving(false);
   };
 
@@ -335,6 +315,13 @@ function SubjectForm({ subject, onClose, onSaved }: {
                 className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50" />
             </div>
           </div>
+          {subject && (
+            <label className="flex items-center gap-2 text-sm text-slate-300">
+              <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)}
+                className="w-4 h-4 rounded accent-emerald-500" />
+              Aktívny (viditeľný na portáli)
+            </label>
+          )}
 
           {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2.5 text-sm text-red-400">{error}</div>}
 
@@ -355,34 +342,26 @@ function SubjectForm({ subject, onClose, onSaved }: {
   );
 }
 
-// ============================================================
-// MESSAGES TAB
-// ============================================================
-function MessagesTab() {
+function MessagesTab({ adminNick }: { adminNick: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMessages = async () => {
-    const { data } = await supabase
-      .from('messages')
-      .select('*, subjects(name)')
-      .order('created_at', { ascending: false });
+    const { data } = await supabase.rpc('admin_get_messages_nick', { p_nick: adminNick });
     setMessages((data as Message[]) ?? []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
+  useEffect(() => { fetchMessages(); }, []);
 
   const markRead = async (id: string, isRead: boolean) => {
-    await supabase.from('messages').update({ is_read: !isRead }).eq('id', id);
+    await supabase.rpc('admin_mark_message_read_nick', { p_nick: adminNick, p_id: id, p_read: !isRead });
     fetchMessages();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Naozaj zmazať túto správu?')) return;
-    await supabase.from('messages').delete().eq('id', id);
+    await supabase.rpc('admin_delete_message_nick', { p_nick: adminNick, p_id: id });
     fetchMessages();
   };
 
@@ -400,44 +379,25 @@ function MessagesTab() {
       ) : (
         <div className="space-y-3">
           {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`bg-slate-800/50 rounded-xl border p-4 transition-all ${
-                m.is_read ? 'border-slate-700/50' : 'border-emerald-500/30 bg-emerald-500/5'
-              }`}
-            >
+            <div key={m.id} className={`bg-slate-800/50 rounded-xl border p-4 transition-all ${m.is_read ? 'border-slate-700/50' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
               <div className="flex items-start justify-between gap-3 mb-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-white">{m.full_name}</span>
                     <span className="text-sm text-slate-500">@{m.nick}</span>
-                    {m.subjects?.name && (
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        {m.subjects.name}
-                      </span>
-                    )}
                     {m.suggested_price != null && (
                       <span className="px-2 py-0.5 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
                         {m.suggested_price} €
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    {new Date(m.created_at).toLocaleString('sk-SK')}
-                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">{new Date(m.created_at).toLocaleString('sk-SK')}</p>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
-                  <button
-                    onClick={() => markRead(m.id, m.is_read)}
-                    className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-emerald-400 hover:bg-slate-700 transition-all"
-                    title={m.is_read ? 'Označiť ako neprečítané' : 'Označiť ako prečítané'}
-                  >
+                  <button onClick={() => markRead(m.id, m.is_read)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-emerald-400 hover:bg-slate-700 transition-all" title={m.is_read ? 'Označiť ako neprečítané' : 'Označiť ako prečítané'}>
                     {m.is_read ? <Check className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
                   </button>
-                  <button
-                    onClick={() => handleDelete(m.id)}
-                    className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-all"
-                  >
+                  <button onClick={() => handleDelete(m.id)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-all">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -451,36 +411,31 @@ function MessagesTab() {
   );
 }
 
-// ============================================================
-// ADMINS TAB
-// ============================================================
-function AdminsTab() {
-  const { profile, refreshProfile } = useAuth();
-  const [profiles, setProfiles] = useState<Profile[]>([]);
+function AdminsTab({ adminNick }: { adminNick: string }) {
+  const { refreshProfile } = useAuth();
+  const [profiles, setProfiles] = useState<Nick[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProfiles = async () => {
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: true });
-    setProfiles((data as Profile[]) ?? []);
+    const { data } = await supabase.rpc('admin_get_profiles_nick', { p_nick: adminNick });
+    setProfiles((data as Nick[]) ?? []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchProfiles();
-  }, []);
+  useEffect(() => { fetchProfiles(); }, []);
 
-  const toggleAdmin = async (p: Profile) => {
-    if (p.id === profile?.id && p.is_admin) {
+  const toggleAdmin = async (p: Nick) => {
+    if (p.nick === adminNick && p.is_admin) {
       if (!confirm('Naozaj chceš zmazať svoje admin práva?')) return;
     }
-    // Use the service role via RPC — but we can't from client.
-    // The trigger allows admins to update is_admin on profiles.
-    const { error } = await supabase.from('profiles').update({ is_admin: !p.is_admin }).eq('id', p.id);
+    const { error } = await supabase.rpc('admin_set_admin_nick', {
+      p_caller: adminNick, p_target: p.nick, p_val: !p.is_admin,
+    });
     if (error) {
       alert('Chyba: ' + error.message);
     } else {
       fetchProfiles();
-      if (p.id === profile?.id) refreshProfile();
+      if (p.nick === adminNick) refreshProfile();
     }
   };
 
@@ -493,7 +448,7 @@ function AdminsTab() {
 
       <div className="space-y-3">
         {profiles.map((p) => (
-          <div key={p.id} className="flex items-center gap-4 bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
+          <div key={p.nick} className="flex items-center gap-4 bg-slate-800/50 rounded-xl border border-slate-700/50 p-4">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-white font-bold flex-shrink-0">
               {p.nick.charAt(0).toUpperCase()}
             </div>
@@ -512,11 +467,7 @@ function AdminsTab() {
             </div>
             <button
               onClick={() => toggleAdmin(p)}
-              className={`p-2.5 rounded-lg transition-all ${
-                p.is_admin
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20'
-                  : 'bg-slate-700/50 text-slate-500 border border-slate-600/30 hover:text-amber-400 hover:border-amber-500/20'
-              }`}
+              className={`p-2.5 rounded-lg transition-all ${p.is_admin ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20' : 'bg-slate-700/50 text-slate-500 border border-slate-600/30 hover:text-amber-400 hover:border-amber-500/20'}`}
               title={p.is_admin ? 'Odobrat admin' : 'Pridať admin'}
             >
               <Shield className="w-4 h-4" />
@@ -528,49 +479,26 @@ function AdminsTab() {
   );
 }
 
-// ============================================================
-// SETTINGS TAB
-// ============================================================
-function SettingsTab() {
+function SettingsTab({ adminNick }: { adminNick: string }) {
   const [webhookUrl, setWebhookUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'discord_webhook_url')
-      .maybeSingle()
-      .then(({ data }) => {
-        setWebhookUrl(data?.value ?? '');
-        setLoading(false);
-      });
+    supabase.rpc('admin_get_setting_nick', { p_nick: adminNick, p_key: 'discord_webhook_url' }).then(({ data }) => {
+      setWebhookUrl((data as string) ?? '');
+      setLoading(false);
+    });
   }, []);
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
-
-    const { data: existing } = await supabase
-      .from('settings')
-      .select('id')
-      .eq('key', 'discord_webhook_url')
-      .maybeSingle();
-
-    if (existing) {
-      await supabase
-        .from('settings')
-        .update({ value: webhookUrl || null, updated_at: new Date().toISOString() })
-        .eq('key', 'discord_webhook_url');
-    } else {
-      await supabase
-        .from('settings')
-        .insert({ key: 'discord_webhook_url', value: webhookUrl || null });
-    }
-
+    await supabase.rpc('admin_set_setting_nick', {
+      p_nick: adminNick, p_key: 'discord_webhook_url', p_value: webhookUrl || null,
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);

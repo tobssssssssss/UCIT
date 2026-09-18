@@ -5,11 +5,10 @@ import { supabase, type Subject } from '@/lib/supabase';
 import { ArrowLeft, Loader2, Send, CheckCircle2 } from 'lucide-react';
 
 export default function ContactPage() {
-  const { profile } = useAuth();
+  const { nick, profile } = useAuth();
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [nick, setNick] = useState(profile?.nick ?? '');
-  const [fullName, setFullName] = useState(profile?.full_name ?? '');
+  const [name, setName] = useState(nick ?? '');
   const [subjectId, setSubjectId] = useState('');
   const [content, setContent] = useState('');
   const [suggestedPrice, setSuggestedPrice] = useState('');
@@ -30,13 +29,8 @@ export default function ContactPage() {
     setError(null);
     setLoading(true);
 
-    if (nick.trim().length < 2) {
+    if (name.trim().length < 2) {
       setError('Nick musí mať aspoň 2 znaky.');
-      setLoading(false);
-      return;
-    }
-    if (fullName.trim().length < 2) {
-      setError('Meno musí mať aspoň 2 znaky.');
       setLoading(false);
       return;
     }
@@ -47,8 +41,8 @@ export default function ContactPage() {
     }
 
     const { error: insertError } = await supabase.from('messages').insert({
-      nick: nick.trim(),
-      full_name: fullName.trim(),
+      nick: name.trim(),
+      full_name: profile?.full_name ?? name.trim(),
       subject_id: subjectId || null,
       content: content.trim(),
       suggested_price: suggestedPrice ? parseFloat(suggestedPrice) : null,
@@ -60,7 +54,6 @@ export default function ContactPage() {
       return;
     }
 
-    // Send Discord notification via edge function
     try {
       const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-discord`;
       await fetch(fnUrl, {
@@ -72,8 +65,8 @@ export default function ContactPage() {
         body: JSON.stringify({
           type: 'message',
           data: {
-            nick: nick.trim(),
-            full_name: fullName.trim(),
+            nick: name.trim(),
+            full_name: profile?.full_name ?? name.trim(),
             content: content.trim(),
             suggested_price: suggestedPrice || null,
             subject: subjects.find((s) => s.id === subjectId)?.name ?? null,
@@ -81,7 +74,7 @@ export default function ContactPage() {
         }),
       });
     } catch {
-      // Notification is best-effort; don't fail the form
+      // best-effort
     }
 
     setSuccess(true);
@@ -96,7 +89,7 @@ export default function ContactPage() {
             <CheckCircle2 className="w-10 h-10 text-emerald-400" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-3">Správa odoslaná!</h2>
-          <p className="text-slate-400 mb-8">Ďakujeme za tvoju správu. Admin ju čo najkôr zistí.</p>
+          <p className="text-slate-400 mb-8">Ďakujeme za tvoju správu. Admin ju čo najskôr zistí.</p>
           <button
             onClick={() => navigate('/')}
             className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-600/20"
@@ -131,29 +124,16 @@ export default function ContactPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Nick *</label>
-                <input
-                  type="text"
-                  value={nick}
-                  onChange={(e) => setNick(e.target.value)}
-                  required
-                  placeholder="Tvoj nick"
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1.5">Meno a priezvisko *</label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  placeholder="Tvoje skutočné meno"
-                  className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">Nick *</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="Tvoj nick"
+                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+              />
             </div>
 
             <div>
