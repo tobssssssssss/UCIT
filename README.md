@@ -4,47 +4,33 @@ Portál kde sa prihlásiš iba nickom — žiadny email, žiadne heslo. Vidíš 
 
 ---
 
-## Nasadenie na Vercel
+## Hosting a doména
 
-Projekt je nakonfigurovaný a pripravený na Vercel. Stačí ho importovať a pridať dve premenné.
+Projekt je hostovaný na **Bolt.new** — stačí ho publikovať priamo z Boltu (tlačidlo **Publish** hore). Bolt automaticky vytvorí `bolt.host` adresu (napr. `tvojprojekt.bolt.host`).
 
-### Krok 1: Importuj projekt
+### Pripojenie vlastnej domény
 
-1. Otvor [vercel.com](https://vercel.com) a prihlás sa.
-2. Klikni **Add New Project** → vyber svoj GitHub repozitár.
-3. Vercel automaticky detekuje Vite — framework píš **Vite**, build command `npm run build`, output dir `dist`.
-4. **Nestláčaj Deploy ešte** — najprv treba pridať premenné (ďalší krok).
+Ak chceš použiť vlastnú doménu (napr. `portal.sk`), ktorú máš zakúpenú u iného poskytovateľa:
 
-### Krok 2: Pridaj environment variables
+1. Najprv **publikuj projekt** v Bolt.new (tlačidlo Publish hore v strede obrazovky).
+2. Klikni na **ikonku ozubeného kolieska** → **All project settings**.
+3. Otvor **Domains & Hosting**.
+4. Klikni **Connect domain** a zadaj svoju doménu.
+5. Bolt ti ukáže DNS záznamy, ktoré treba nastaviť u poskytovateľa tvojej domény:
+   - **A záznam** — ukazuje na Bolt IP adresu
+   - **CNAME záznam** — pre `www` subdoménu
+6. Nastav tieto DNS záznamy u poskytovateľa domény (kde si doménu kúpil).
+7. Po nastavení DNS Bolt doménu automaticky overí a aktivuje (môže trvať pár minút až hodín).
 
-V Verceli na tej istej stránke (alebo neskôr v **Settings → Environment Variables**) pridaj tieto dve premenné:
+> **Poznámka:** Vlastné domény sú dostupné len pre **Pro** plán. Na Free pláne ostávaš na `bolt.host` adrese.
 
-| Názov v Verceli | Hodnota |
-|---|---|
-| `VITE_SUPABASE_URL` | `https://egfkqaefpdawwotdxwso.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnZmlxYWVmcGRhd3dvdGR4d3NvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NjA2OTMsImV4cCI6MjEwNTIzNjY5M30.GdkM7-y3iklm2C2YwtsitCfHVbDxoDMhhMSjhXvgKes` |
+### Environment variables
 
-Tieto dve hodnoty nájdeš aj v lokálnom `.env` súbore — skopíruj ich presne tak ako sú.
+Bolt.new automaticky používa premenné z `.env` súboru v projekte — `VITE_SUPABASE_URL` a `VITE_SUPABASE_ANON_KEY` sú už nastavené. Nič nemusíš pridávať.
 
-> **Dôležité:** Toto sú **verejné** kľúče (anon key), bezpečné na použitie v prehliadači. Service role key sa nepoužíva v aplikácii — len v edge function, ktorá beží na Supabase serveri a má svoje vlastné secrets.
+### Edge function (Discord notifikácie)
 
-### Krok 3: Deploy
-
-Klikni **Deploy**. Za pár minút bude portál živý na tvojej Vercel domene (napr. `tvojprojekt.vercel.app`).
-
-### Krok 4: Vlastná doména (voliteľné)
-
-Po deployi môžeš pridať vlastnú doménu:
-1. V Verceli otvor projekt → **Settings → Domains**.
-2. Klikni **Add** a zadaj svoju doménu (napr. `portal.sk`).
-3. Vercel ti ukáže DNS záznamy, ktoré treba nastaviť u poskytovateľa domény (A záznam alebo CNAME).
-4. Po nastavení DNS Vercel doménu automaticky overí a aktivuje.
-
-Portál bude fungovať na vlastnej doméne — žiadny bolt.new, žiadne obmedzenia.
-
-### Krok 5: Edge function (Discord notifikácie)
-
-Edge function `notify-discord` beží na Supabase serveri — nie na Vercele. Je už nasadená a nakonfigurovaná. Jej secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) sú nastavené automaticky na Supabase strane. Na Vercele s tým nemusíš nič robiť.
+Edge function `notify-discord` beží na Supabase serveri. Je už nasadená a jej secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) sú nastavené automaticky. S hostingom to nemá nič spoločné.
 
 ---
 
