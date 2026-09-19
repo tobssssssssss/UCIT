@@ -30,9 +30,19 @@ Tieto dve hodnoty nájdeš aj v lokálnom `.env` súbore — skopíruj ich presn
 
 ### Krok 3: Deploy
 
-Klikni **Deploy**. Za pár minút bude portál živý na `tvojprojekt.vercel.app`.
+Klikni **Deploy**. Za pár minút bude portál živý na tvojej Vercel domene (napr. `tvojprojekt.vercel.app`).
 
-### Krok 4: Edge function (Discord notifikácie)
+### Krok 4: Vlastná doména (voliteľné)
+
+Po deployi môžeš pridať vlastnú doménu:
+1. V Verceli otvor projekt → **Settings → Domains**.
+2. Klikni **Add** a zadaj svoju doménu (napr. `portal.sk`).
+3. Vercel ti ukáže DNS záznamy, ktoré treba nastaviť u poskytovateľa domény (A záznam alebo CNAME).
+4. Po nastavení DNS Vercel doménu automaticky overí a aktivuje.
+
+Portál bude fungovať na vlastnej doméne — žiadny bolt.new, žiadne obmedzenia.
+
+### Krok 5: Edge function (Discord notifikácie)
 
 Edge function `notify-discord` beží na Supabase serveri — nie na Vercele. Je už nasadená a nakonfigurovaná. Jej secrets (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) sú nastavené automaticky na Supabase strane. Na Vercele s tým nemusíš nič robiť.
 
@@ -48,14 +58,11 @@ Edge function `notify-discord` beží na Supabase serveri — nie na Vercele. Je
 
 ---
 
-## Ako sa stať adminom
+## Admin účet
 
-1. Prihlás sa svojím nickom.
-2. Otvor `/admin` v prehliadači (napr. `tvojprojekt.vercel.app/admin`).
-3. Ak ešte nikto nie je admin, uvidíš tlačidlo **Prevziať admina**. Klikni.
-4. Odteraz máš admin práva a vidíš Admin Panel.
+Admin je už nastavený — nick **tobias kromka**. Stačí sa prihlásiť týmto nickom a máš prístup do Admin Panelu.
 
-Ak už admin existuje, môže ťa povýšiť v Admin Paneli → **Admins**.
+Ak chceš pridať ďalšieho admina: prihlás sa ako tobias kromka, choď do Admin Paneli → **Admins**, klikni na ikonu štítu vedľa nicku, ktorému chceš dať admin práva.
 
 ---
 
@@ -147,6 +154,5 @@ V Admin Paneli → **Admins** je zoznam všetkých nickov.
 
 | Predmet | URL |
 |---|---|
-| Biológia | https://github.com/usbkluc/handy-quiz-coach |
 | Angličtina | https://github.com/tobssssssssss/english |
 | Pod sem | https://github.com/alvero725/obchod |
