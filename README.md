@@ -1,6 +1,6 @@
 # Vzdelávací Portál
 
-Portál kde sa prihlásiš iba nickom — žiadny email, žiadne heslo. Vidíš predmety, každý odkazuje na vlastnú stránku. Admin môže pridovať predmety, čítať správy a nastaviť Discord webhook.
+Portál kde sa prihlásiš iba nickom — žiadny email, žiadne heslo. Vidíš predmety, každý ťa presmeruje na externú stránku. Admin môže pridávať predmety, spravovať adminov a nastaviť Discord webhook.
 
 ---
 
@@ -42,6 +42,8 @@ Edge function `notify-discord` beží na Supabase serveri. Je už nasadená a je
 4. Nick si zapamätá prehliadač, takže nabudúce ťa prihlási automaticky.
 5. **Odhlásiť** sa môžeš kedykoľvek — tlačidlom v hornej lište.
 
+Prihlásenie funguje cez vlastné API — nick sa uloží do databázy (Supabase) a prehliadač si ho zapamätá. Žiadny externý poskytovateľ prihlásenia, žiadny email, žiadne heslo.
+
 ---
 
 ## Admin účet
@@ -54,23 +56,32 @@ Ak chceš pridať ďalšieho admina: prihlás sa ako tobias kromka, choď do Adm
 
 ## Ako pridať novú stránku (predmet)
 
-1. Prihlás sa ako admin (nick **tobias kromka**) a choď na **Admin Panel** (tlačidlo v hornej lište alebo `/admin`).
-2. Otvor záložku **Predmety**.
-3. Klikni **Pridať predmet**.
-4. Vyplň:
-   - **Názov** — ako sa predmet volá (napr. "Matematika").
-   - **Slug** — identifikátor do URL (napr. "matematika"). Ak necháš prázdne, vygeneruje sa automaticky.
-   - **Popis** — krátky popis zobrazený na karte.
-   - **URL** — odkaz na **GitHub repozitár** predmetu (napr. `https://github.com/tobssssssssss/english`). Obsah README sa automaticky načíta a zobrazí v portáli.
-   - **Ikona** — vyber z ponuky (Leaf, BookOpen, ShoppingBag, atď.).
-   - **Poradie** — číslo pre zoradenie kariet (nižšie = skôr).
-5. Klikni **Vytvoriť**.
+Predmety sa zobrazujú ako karty na portáli. Klik na kartu ťa presmeruje priamo na URL, ktorú zadalíš — otvorí sa v novej záložke.
 
-> **Dôležité:** URL musí smerovať na GitHub repozitár (napr. `https://github.com/meno/repo`). Portál automaticky stiahne README z toho repozitára a zobrazí ho priamo v aplikácii — používateľ nemusí opúšťať portál. Tlačidlo "Otvoriť na GitHube" je stále k dispozícii pre priamy prístup.
+### Krok za krokom
+
+1. Prihlás sa ako admin (nick **tobias kromka**).
+2. Klikni **Admin Panel** v hornej lište (alebo choď na `/admin`).
+3. Otvor záložku **Predmety**.
+4. Klikni **Pridať predmet**.
+5. Vyplň formulár:
+   - **Názov** — ako sa predmet volá (napr. "Matematika").
+   - **Slug** — identifikátor do URL (napr. "matematika"). Ak necháš prázdne, vygeneruje sa automaticky z názvu.
+   - **Popis** — krátky popis zobrazený na karte pod názvom.
+   - **URL** — **odkaz, kam sa má používateľ presmerovať** pri kliknutí na kartu. Môže to byť hocičo:
+     - GitHub repozitár: `https://github.com/tobssssssssss/english`
+     - Web stránka: `https://mojastranka.sk`
+     - Google Docs: `https://docs.google.com/...`
+     - Akýkoľvek iný link
+   - **Ikona** — vyber z ponuky (Leaf, BookOpen, ShoppingBag, Calculator, Globe, atď.).
+   - **Poradie** — číslo pre zoradenie kariet (nižšie = skôr v zozname).
+6. Klikni **Vytvoriť**.
+
+Nová karta sa okamžite zobrazí na portáli. Klik na ňu otvorí zadanú URL v novej záložke prehliadača.
 
 ### Upraviť / Skryť / Zmazať predmet
 
-- **Upraviť**: ikona pera vedľa predmetu.
+- **Upraviť**: ikona pera vedľa predmetu — zmeníš názov, URL, popis, atď.
 - **Skryť/Zobraziť**: ikona štítu — predmet zmizne z portálu ale ostane v databáze.
 - **Zmazať**: ikona koša — trvalo odstráni.
 
@@ -78,7 +89,7 @@ Ak chceš pridať ďalšieho admina: prihlás sa ako tobias kromka, choď do Adm
 
 ## Admin meno — nastavenie
 
-V Admin Paneli → **Nastavenia** → pole **Admin meno** môže admin nastaviť svoje celé meno. Toto meno sa zobrazuje v Discord notifikáciách pri prihlásení a pri správach z kontaktu.
+V Admin Paneli → **Nastavenia** → pole **Admin meno** môže admin nastaviť svoje celé meno. Toto meno sa zobrazuje v Discord notifikáciách pri prihlásení.
 
 ---
 
@@ -101,26 +112,11 @@ https://discord.com/api/webhooks/XXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX
 1. Otvor Discord → kanál, kam chceš dostávať notifikácie.
 2. Nastavenia kanálu → **Integrácie** → **Webhooky** → **Nový webhook**.
 3. Skopíruj **URL web hooku**.
-4. Vlož ho do Admin Paneli → Nastavenia → Uložiť.
+4. Vlož ho do Admin Paneli → Nastavenia → Uložiť webhook.
 
 ### Čo potom chodí na Discord
 
 - **Prihlásenie**: nick a meno používateľa.
-- **Správa z kontaktu**: nick, meno, text správy, predmet (ak vybraný), navrhovaná cena (ak zadaná).
-
----
-
-## Kontaktný formulár
-
-Na `/contact` môže ktokoľvek poslať správu — nepotrebuje byť prihlásený.
-
-Vyplní:
-- **Nick** — svoju prezývku.
-- **Predmet** (voliteľné) — ku ktorému predmetu sa správa vzťahuje.
-- **Správa** — text.
-- **Navrhovaná cena** (voliteľné) — ak chce navrhnúť cenu.
-
-Správy si admin prečíta v Admin Paneli → **Správy**. Neprečítané sú zvýraznené.
 
 ---
 
@@ -139,15 +135,13 @@ V Admin Paneli → **Admins** je zoznam všetkých nickov.
 |---|---|---|
 | Prihlásenie | `/login` | Neprihlásení |
 | Portál (predmety) | `/` | Všetci (aj neprihlásení) |
-| Predmet | `/subject/matematika` | Všetci |
-| Kontakt | `/contact` | Všetci |
-| Admin Panel | `/admin` | Prihlásení (admin) |
+| Admin Panel | `/admin` | Prihlásení admini |
 
 ---
 
 ## Aktuálne predmety
 
-| Predmet | URL |
+| Predmet | URL kam presmeruje |
 |---|---|
 | Angličtina | https://github.com/tobssssssssss/english |
 | Pod sem | https://github.com/alvero725/obchod |

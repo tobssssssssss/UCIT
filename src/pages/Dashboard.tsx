@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase, type Subject } from '@/lib/supabase';
 import { SubjectIcon } from '@/components/SubjectIcon';
-import { LogOut, Shield, ExternalLink, MessageSquare, Mail, GraduationCap, LogIn } from 'lucide-react';
+import { LogOut, Shield, ExternalLink, GraduationCap, LogIn } from 'lucide-react';
 
 export default function Dashboard() {
   const { profile, nick, signOut } = useAuth();
@@ -48,13 +48,6 @@ export default function Dashboard() {
                 <span className="hidden sm:inline">Admin Panel</span>
               </Link>
             )}
-            <Link
-              to="/contact"
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-slate-700 hover:text-white transition-all text-sm font-medium"
-            >
-              <Mail className="w-4 h-4" />
-              <span className="hidden sm:inline">Kontakt</span>
-            </Link>
             {nick ? (
               <button
                 onClick={signOut}
@@ -95,9 +88,11 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {subjects.map((subject) => (
-              <Link
+              <a
                 key={subject.id}
-                to={`/subject/${subject.slug}`}
+                href={subject.url}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -112,23 +107,10 @@ export default function Dashboard() {
                 {subject.description && (
                   <p className="text-slate-400 text-sm leading-relaxed">{subject.description}</p>
                 )}
-              </Link>
+              </a>
             ))}
           </div>
         )}
-
-        <div className="mt-12 bg-gradient-to-r from-slate-800/50 to-slate-800/30 rounded-2xl border border-slate-700/50 p-8 text-center">
-          <MessageSquare className="w-10 h-10 text-emerald-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-white mb-2">Máš otázku alebo návrh?</h3>
-          <p className="text-slate-400 mb-4">Napíš nám — môžeš aj navrhnúť cenu.</p>
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-emerald-600/20"
-          >
-            <Mail className="w-5 h-5" />
-            Kontaktovať
-          </Link>
-        </div>
       </main>
     </div>
   );

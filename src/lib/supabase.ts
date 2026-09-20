@@ -25,14 +25,3 @@ export type Nick = {
   last_login_at: string | null;
 };
 
-export type Message = {
-  id: string;
-  nick: string;
-  full_name: string;
-  subject_id: string | null;
-  content: string;
-  suggested_price: number | null;
-  is_read: boolean;
-  created_at: string;
-  subjects?: Pick<Subject, 'name'> | null;
-};

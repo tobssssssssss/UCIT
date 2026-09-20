@@ -1,14 +1,14 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { supabase, type Subject, type Message, type Nick } from '@/lib/supabase';
+import { supabase, type Subject, type Nick } from '@/lib/supabase';
 import { SubjectIcon } from '@/components/SubjectIcon';
 import {
-  ArrowLeft, Shield, Plus, Trash2, Edit2, X, Mail, Check, Users,
+  ArrowLeft, Shield, Plus, Trash2, Edit2, X, Users,
   Settings as SettingsIcon, Loader2, Save, Webhook, CheckCircle2, Ban,
 } from 'lucide-react';
 
-type Tab = 'subjects' | 'messages' | 'admins' | 'settings';
+type Tab = 'subjects' | 'admins' | 'settings';
 
 export default function AdminPage() {
   const { nick, profile, loading: authLoading, refreshProfile } = useAuth();
@@ -121,7 +121,6 @@ export default function AdminPage() {
         <div className="flex gap-1 p-1 bg-slate-800/50 rounded-xl mb-8 overflow-x-auto">
           {([
             ['subjects', 'Predmety', Plus],
-            ['messages', 'Správy', Mail],
             ['admins', 'Admins', Users],
             ['settings', 'Nastavenia', SettingsIcon],
           ] as const).map(([key, label, Icon]) => (
@@ -141,7 +140,6 @@ export default function AdminPage() {
         </div>
 
         {tab === 'subjects' && <SubjectsTab adminNick={nick!} />}
-        {tab === 'messages' && <MessagesTab adminNick={nick!} />}
         {tab === 'admins' && <AdminsTab adminNick={nick!} />}
         {tab === 'settings' && <SettingsTab adminNick={nick!} />}
       </main>
@@ -338,75 +336,6 @@ function SubjectForm({ adminNick, subject, onClose, onSaved }: {
           </div>
         </form>
       </div>
-    </div>
-  );
-}
-
-function MessagesTab({ adminNick }: { adminNick: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchMessages = async () => {
-    const { data } = await supabase.rpc('admin_get_messages_nick', { p_nick: adminNick });
-    setMessages((data as Message[]) ?? []);
-    setLoading(false);
-  };
-
-  useEffect(() => { fetchMessages(); }, []);
-
-  const markRead = async (id: string, isRead: boolean) => {
-    await supabase.rpc('admin_mark_message_read_nick', { p_nick: adminNick, p_id: id, p_read: !isRead });
-    fetchMessages();
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Naozaj zmazať túto správu?')) return;
-    await supabase.rpc('admin_delete_message_nick', { p_nick: adminNick, p_id: id });
-    fetchMessages();
-  };
-
-  if (loading) return <Loader2 className="w-6 h-6 animate-spin text-amber-400 mx-auto" />;
-
-  const unreadCount = messages.filter((m) => !m.is_read).length;
-
-  return (
-    <div>
-      <h2 className="text-xl font-bold text-white mb-2">Správy ({messages.length})</h2>
-      <p className="text-slate-400 text-sm mb-6">{unreadCount} neprečítaných</p>
-
-      {messages.length === 0 ? (
-        <p className="text-slate-400 text-center py-12">Zatiaľ žiadne správy.</p>
-      ) : (
-        <div className="space-y-3">
-          {messages.map((m) => (
-            <div key={m.id} className={`bg-slate-800/50 rounded-xl border p-4 transition-all ${m.is_read ? 'border-slate-700/50' : 'border-emerald-500/30 bg-emerald-500/5'}`}>
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-white">{m.full_name}</span>
-                    <span className="text-sm text-slate-500">@{m.nick}</span>
-                    {m.suggested_price != null && (
-                      <span className="px-2 py-0.5 rounded-full text-xs bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        {m.suggested_price} €
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5">{new Date(m.created_at).toLocaleString('sk-SK')}</p>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  <button onClick={() => markRead(m.id, m.is_read)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-emerald-400 hover:bg-slate-700 transition-all" title={m.is_read ? 'Označiť ako neprečítané' : 'Označiť ako prečítané'}>
-                    {m.is_read ? <Check className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
-                  </button>
-                  <button onClick={() => handleDelete(m.id)} className="p-2 rounded-lg bg-slate-700/50 text-slate-400 hover:text-red-400 hover:bg-slate-700 transition-all">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

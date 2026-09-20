@@ -2,9 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import AuthPage from '@/pages/AuthPage';
 import Dashboard from '@/pages/Dashboard';
-import ContactPage from '@/pages/ContactPage';
 import AdminPage from '@/pages/AdminPage';
-import SubjectPage from '@/pages/SubjectPage';
 import { Loader2 } from 'lucide-react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -38,8 +36,6 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<PublicOnlyRoute><AuthPage /></PublicOnlyRoute>} />
       <Route path="/" element={<Dashboard />} />
-      <Route path="/subject/:slug" element={<SubjectPage />} />
-      <Route path="/contact" element={<ContactPage />} />
       <Route path="/admin" element={<ProtectedRoute><AdminPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
