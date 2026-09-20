@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { supabase, type Subject } from '@/lib/supabase';
 import { SubjectIcon } from '@/components/SubjectIcon';
-import { LogOut, Shield, ExternalLink, MessageSquare, Mail, GraduationCap } from 'lucide-react';
+import { LogOut, Shield, ExternalLink, MessageSquare, Mail, GraduationCap, LogIn } from 'lucide-react';
 
 export default function Dashboard() {
   const { profile, nick, signOut } = useAuth();
@@ -14,6 +14,7 @@ export default function Dashboard() {
     supabase
       .from('subjects')
       .select('*')
+      .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .then(({ data }) => {
         setSubjects((data as Subject[]) ?? []);
@@ -31,7 +32,9 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white">Vzdelávací Portál</h1>
-              <p className="text-xs text-slate-400">Vitaj, {nick ?? 'používateľ'}</p>
+              <p className="text-xs text-slate-400">
+                {nick ? `Vitaj, ${nick}` : 'Prehliadaš ako hosť'}
+              </p>
             </div>
           </div>
 
@@ -52,13 +55,23 @@ export default function Dashboard() {
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">Kontakt</span>
             </Link>
-            <button
-              onClick={signOut}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 transition-all text-sm font-medium"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Odhlásiť</span>
-            </button>
+            {nick ? (
+              <button
+                onClick={signOut}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/50 border border-slate-600/50 text-slate-300 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 transition-all text-sm font-medium"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Odhlásiť</span>
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition-all text-sm font-medium"
+              >
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Prihlásiť</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
@@ -82,11 +95,9 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {subjects.map((subject) => (
-              <a
+              <Link
                 key={subject.id}
-                href={subject.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                to={`/subject/${subject.slug}`}
                 className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -101,7 +112,7 @@ export default function Dashboard() {
                 {subject.description && (
                   <p className="text-slate-400 text-sm leading-relaxed">{subject.description}</p>
                 )}
-              </a>
+              </Link>
             ))}
           </div>
         )}

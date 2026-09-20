@@ -54,23 +54,31 @@ Ak chceš pridať ďalšieho admina: prihlás sa ako tobias kromka, choď do Adm
 
 ## Ako pridať novú stránku (predmet)
 
-1. Prihlás sa ako admin a choď na **Admin Panel** (tlačidlo v hornej lište alebo `/admin`).
+1. Prihlás sa ako admin (nick **tobias kromka**) a choď na **Admin Panel** (tlačidlo v hornej lište alebo `/admin`).
 2. Otvor záložku **Predmety**.
 3. Klikni **Pridať predmet**.
 4. Vyplň:
    - **Názov** — ako sa predmet volá (napr. "Matematika").
    - **Slug** — identifikátor do URL (napr. "matematika"). Ak necháš prázdne, vygeneruje sa automaticky.
    - **Popis** — krátky popis zobrazený na karte.
-   - **URL** — odkaz na stránku predmetu (napr. `https://github.com/mojprojekt`).
+   - **URL** — odkaz na **GitHub repozitár** predmetu (napr. `https://github.com/tobssssssssss/english`). Obsah README sa automaticky načíta a zobrazí v portáli.
    - **Ikona** — vyber z ponuky (Leaf, BookOpen, ShoppingBag, atď.).
    - **Poradie** — číslo pre zoradenie kariet (nižšie = skôr).
 5. Klikni **Vytvoriť**.
+
+> **Dôležité:** URL musí smerovať na GitHub repozitár (napr. `https://github.com/meno/repo`). Portál automaticky stiahne README z toho repozitára a zobrazí ho priamo v aplikácii — používateľ nemusí opúšťať portál. Tlačidlo "Otvoriť na GitHube" je stále k dispozícii pre priamy prístup.
 
 ### Upraviť / Skryť / Zmazať predmet
 
 - **Upraviť**: ikona pera vedľa predmetu.
 - **Skryť/Zobraziť**: ikona štítu — predmet zmizne z portálu ale ostane v databáze.
 - **Zmazať**: ikona koša — trvalo odstráni.
+
+---
+
+## Admin meno — nastavenie
+
+V Admin Paneli → **Nastavenia** → pole **Admin meno** môže admin nastaviť svoje celé meno. Toto meno sa zobrazuje v Discord notifikáciách pri prihlásení a pri správach z kontaktu.
 
 ---
 
@@ -130,9 +138,10 @@ V Admin Paneli → **Admins** je zoznam všetkých nickov.
 | Stránka | URL | Kto ju vidí |
 |---|---|---|
 | Prihlásenie | `/login` | Neprihlásení |
-| Portál (predmety) | `/` | Prihlásení |
+| Portál (predmety) | `/` | Všetci (aj neprihlásení) |
+| Predmet | `/subject/matematika` | Všetci |
 | Kontakt | `/contact` | Všetci |
-| Admin Panel | `/admin` | Prihlásení (admin po prevzatí) |
+| Admin Panel | `/admin` | Prihlásení (admin) |
 
 ---
 

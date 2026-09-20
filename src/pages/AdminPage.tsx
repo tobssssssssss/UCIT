@@ -480,28 +480,46 @@ function AdminsTab({ adminNick }: { adminNick: string }) {
 }
 
 function SettingsTab({ adminNick }: { adminNick: string }) {
+  const { refreshProfile } = useAuth();
   const [webhookUrl, setWebhookUrl] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [savingWebhook, setSavingWebhook] = useState(false);
+  const [savingName, setSavingName] = useState(false);
+  const [savedWebhook, setSavedWebhook] = useState(false);
+  const [savedName, setSavedName] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.rpc('admin_get_setting_nick', { p_nick: adminNick, p_key: 'discord_webhook_url' }).then(({ data }) => {
-      setWebhookUrl((data as string) ?? '');
+    (async () => {
+      const { data: wh } = await supabase.rpc('admin_get_setting_nick', { p_nick: adminNick, p_key: 'discord_webhook_url' });
+      setWebhookUrl((wh as string) ?? '');
+      const { data: profile } = await supabase.from('nicks').select('full_name').eq('nick', adminNick).maybeSingle();
+      setFullName((profile as { full_name: string | null })?.full_name ?? '');
       setLoading(false);
-    });
-  }, []);
+    })();
+  }, [adminNick]);
 
-  const handleSave = async (e: FormEvent) => {
+  const handleSaveWebhook = async (e: FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setSaved(false);
+    setSavingWebhook(true);
+    setSavedWebhook(false);
     await supabase.rpc('admin_set_setting_nick', {
       p_nick: adminNick, p_key: 'discord_webhook_url', p_value: webhookUrl || null,
     });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setSavingWebhook(false);
+    setSavedWebhook(true);
+    setTimeout(() => setSavedWebhook(false), 3000);
+  };
+
+  const handleSaveName = async (e: FormEvent) => {
+    e.preventDefault();
+    setSavingName(true);
+    setSavedName(false);
+    await supabase.rpc('admin_set_full_name_nick', { p_nick: adminNick, p_full_name: fullName });
+    await refreshProfile();
+    setSavingName(false);
+    setSavedName(true);
+    setTimeout(() => setSavedName(false), 3000);
   };
 
   if (loading) return <Loader2 className="w-6 h-6 animate-spin text-amber-400 mx-auto" />;
@@ -510,7 +528,42 @@ function SettingsTab({ adminNick }: { adminNick: string }) {
     <div>
       <h2 className="text-xl font-bold text-white mb-6">Nastavenia</h2>
 
-      <form onSubmit={handleSave} className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 max-w-lg">
+      <form onSubmit={handleSaveName} className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 max-w-lg mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Users className="w-5 h-5 text-emerald-400" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">Admin meno</h3>
+            <p className="text-sm text-slate-400">Tvoje celé meno — zobrazí sa na GitHube a v Discord notifikáciách.</p>
+          </div>
+        </div>
+
+        <input
+          type="text"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          placeholder="Tvoje meno"
+          className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
+        />
+
+        {savedName && (
+          <div className="mt-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-2.5 text-sm text-emerald-400 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" /> Uložené!
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={savingName}
+          className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-all disabled:opacity-50"
+        >
+          {savingName ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Uložiť meno
+        </button>
+      </form>
+
+      <form onSubmit={handleSaveWebhook} className="bg-slate-800/50 rounded-xl border border-slate-700/50 p-6 max-w-lg">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
             <Webhook className="w-5 h-5 text-indigo-400" />
@@ -529,7 +582,7 @@ function SettingsTab({ adminNick }: { adminNick: string }) {
           className="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all"
         />
 
-        {saved && (
+        {savedWebhook && (
           <div className="mt-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg px-4 py-2.5 text-sm text-emerald-400 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4" /> Uložené!
           </div>
@@ -537,11 +590,11 @@ function SettingsTab({ adminNick }: { adminNick: string }) {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={savingWebhook}
           className="mt-4 flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg transition-all disabled:opacity-50"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Uložiť
+          {savingWebhook ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          Uložiť webhook
         </button>
       </form>
     </div>
