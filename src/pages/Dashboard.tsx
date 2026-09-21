@@ -91,8 +91,7 @@ export default function Dashboard() {
               <a
                 key={subject.id}
                 href={subject.url}
-                target="_blank"
-                rel="noopener noreferrer"
+                target="_self"
                 className="group relative bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-6 hover:border-emerald-500/50 hover:bg-slate-800/80 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
